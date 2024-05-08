@@ -4,113 +4,134 @@ from matplotlib import pyplot as plt
 from PIL import Image
 from collections import Counter
 
+import time
+start = time.time() #timer
+
 def m(a, b):
     if a > b:
         k = a
     else:
         k = b
     return k
-
 def min(a, b):
     if a > b:
         k = b
     else:
         k = a
     return k
-
 def max(x, y, z):
     M = m(x, m(y, z))
     return M
 
-img = Image.open("C:/Users/cashi/Downloads/public_03.png")
-W, H = img.size
+def hue(x, y, imghsv):
+        k = imghsv[y, x, 0]
+        return k
+def sa(x, y, imghsv):
+    k = imghsv[y, x, 1]
+    return k
+def v(x, y, imghsv):
+    k = imghsv[y, x, 2]
+    return k
 
-Imgf = Image.new("RGB", (W, W), '#FFFFFF')
-Imgf.paste(img, (0, (W-H)//2))
-imgf = Imgf.resize((int(W/3), int(W/3)))
-imgpx_ = np.array(imgf)
+def GMC(img):
+    W, H = img.size
+    Imgf = Image.new("RGB", (W, W), '#FFFFFF')
+    Imgf.paste(img, (0, (W-H)//2))
+    imgf = Imgf.resize((int(W/3), int(W/3)))
+    imgpx_ = np.array(imgf)
+    imgpxhsv = cv2.cvtColor(imgpx_, cv2.COLOR_RGB2HSV)
 
-x1 = 0; y1 = 0; x2 = 0; y2 = 0; x3 = 0; y3 = 0
-x1_ = 0; y1_ = 0; x3_ = 0; y3_ = 0
+    x1 = 0; y1 = 0; x2 = 0; y2 = 0; x3 = 0; y3 = 0
+    x1_ = 0; y1_ = 0; x3_ = 0; y3_ = 0
 
-breaker1 = False
-for j in range(W//3):
-    for i in range(W//3):
-        y = imgpx_[j][i]
-        if y[0]+y[1]+y[2] == 0:
-            x1, y1 = (i, j)
-            breaker1 = True
-            break
-    if breaker1 == True:
-        break
-
-breaker2 = False
-for i in range(W//3):
+    breaker1 = False
     for j in range(W//3):
-        y = imgpx_[j][i]
-        if y[0]+y[1]+y[2] ==0:
-            x2, y2 = (i, j)
-            breaker2 = True
+        for i in range(W//3):
+            y = imgpxhsv[j, i, 2]
+            if y < 30:
+                x1, y1 = (i, j)
+                breaker1 = True
+                break
+        if breaker1 == True:
             break
-    if breaker2 == True:
-        break
 
-breaker3 = False
-for j in range(W//3):
+    breaker2 = False
     for i in range(W//3):
-        y = imgpx_[W//3-1-j][W//3-1-i]
-        if y[0]+y[1]+y[2] == 0:
-            x3, y3 = (W//3-1-i, W//3-1-j)
-            breaker3 = True
+        for j in range(W//3):
+            y = imgpxhsv[j, i, 2]
+            if y < 30:
+                x2, y2 = (i, j)
+                breaker2 = True
+                break
+        if breaker2 == True:
             break
-    if breaker3 == True:
-        break
 
-if x1 == x2 and y1 == y2:
-    x1_= x1; y1_ = y1; x3_ = x3; y3_ = y3
-    img_r = imgf
-else:
-    D1 = (y2-y1)/(x1-x2); D2 = (y2-y3)/(x3-x2)
-    R = min(D1, D2)
+    breaker3 = False
+    for j in range(W//3):
+        for i in range(W//3):
+            y = imgpxhsv[W//3-1-j, W//3-1-i, 2]
+            if y < 30:
+                x3, y3 = (W//3-1-i, W//3-1-j)
+                breaker3 = True
+                break
+        if breaker3 == True:
+            break
 
-    A = -np.arctan(R)       #A는 양수(호도법)
-    As = A*180/np.pi            #As는 양수(육십분법)
-    img_r = imgf.rotate(As)     #img를 양각의 방향으로 As(deg)만큼 회전
-    imgpx__ = np.array(img_r)
+    if x1 == x2 and y1 == y2:
+        x1_= x1; y1_ = y1; x3_ = x3; y3_ = y3
+        img_r = imgf
+    else:
+        D1 = (y2-y1)/(x1-x2+10**(-4)); D2 = (y2-y3)/(x3-x2+10**(-4))
+        R = min(D1, D2)
+        A = -np.arctan(R)
+        As = A*180/np.pi
+        img_r = imgf.rotate(As)
 
-    x1_=(x1-W/6)*np.cos(A)+(y1-W/6)*np.sin(A)+W/6; y1_=-(x1-W/6)*np.sin(A)+(y1-W/6)*np.cos(A)+W/6
-    x3_=(x3-W/6)*np.cos(A)+(y3-W/6)*np.sin(A)+W/6; y3_=-(x3-W/6)*np.sin(A)+(y3-W/6)*np.cos(A)+W/6
+        x1_=(x1-W/6)*np.cos(A)+(y1-W/6)*np.sin(A)+W/6; y1_=-(x1-W/6)*np.sin(A)+(y1-W/6)*np.cos(A)+W/6
+        x3_=(x3-W/6)*np.cos(A)+(y3-W/6)*np.sin(A)+W/6; y3_=-(x3-W/6)*np.sin(A)+(y3-W/6)*np.cos(A)+W/6
 
-img_rc = img_r.crop((x1_+4, y1_+2, x3_-4, y3_-2))
+    img_rc = img_r.crop((x1_+6, y1_+4, x3_-6, y3_-4))
+    '''
+    plt.imshow(img_rc)
+    plt.show()
+    '''
+    imgcv = np.array(img_rc)
+    imghsv = cv2.cvtColor(imgcv, cv2.COLOR_RGB2HSV)
 
-imgpx = np.array(img_rc)
+    cv2.imshow("asdf", imgcv)
+    cv2.waitKey()
+    
+    H_r, W_r, C_r = imghsv.shape
+    s=0
+    P = H_r * W_r
+    CN = np.zeros(P)
+    for i in range(W_r):
+        for j in range(H_r):
+            if (170 < hue(i, j,imghsv) or hue(i, j,imghsv) < 10) and sa(i, j,imghsv) > 50 and v(i, j,imghsv) > 50:
+                CN[s] = 0
+                s +=1
+            elif (50 < hue(i, j,imghsv) and hue(i, j,imghsv) < 70) and sa(i, j,imghsv) > 50 and v(i, j,imghsv) > 50:
+                CN[s] = 1
+                s +=1
+            elif (110 < hue(i, j,imghsv) or hue(i, j,imghsv) < 130) and sa(i, j,imghsv) > 50 and v(i, j,imghsv) > 50:
+                CN[s] = 2
+                s +=1       
 
-H_r, W_r = img_rc.size
-s=0
-P = H_r * W_r
-CN = np.zeros(P)
-for i in range(H_r):
-    for j in range(W_r):
-        x = imgpx[j][i]
-        if x[0] == max(x[0], x[1], x[2]):
-            CN[s] = 0
-            s +=1
-        elif x[1] == max(x[0], x[1], x[2]):
-            CN[s] = 1
-            s +=1
-        elif x[2] == max(x[0], x[1], x[2]):
-            CN[s] = 2
-            s +=1       
+    COUNT_ = Counter(CN)
+    MC = COUNT_.most_common(n=1)
+    MCV, FR = MC[0]
 
-COUNT_ = Counter(CN)
-MC = COUNT_.most_common(n=1)
-MCV, FR = MC[0]
+    print(CN)
 
-if MCV == 0:
-    COL = "R"
-elif MCV == 1:
-    COL = "G"
-elif MCV == 2:
-    COL = "B"
+    if MCV == 0:
+        COL = "R"
+    elif MCV == 1:
+        COL = "G"
+    elif MCV == 2:
+        COL = "B"
+    return COL
 
-print(COL)
+image = Image.open("C:/Users/cashi/Downloads/ExQ/ExQ2.png")
+print(GMC(image))
+# print(time.time()-start)
+# print(44*(time.time()-start))
