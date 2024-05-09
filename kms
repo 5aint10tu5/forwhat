@@ -1,0 +1,81 @@
+import numpy as np
+import cv2
+#from matplotlib import pyplot as plt
+from PIL import Image
+#from collections import Counter
+import sys
+sys.setrecursionlimit(10**6)
+
+import math
+import time
+
+mrk = {'nan': 0x0, 'blk': 0x1, 'R': 0x2, 'G': 0x3, 'B': 0x4}
+
+def M(a, b): return a if (a>b) else b
+def m(a, b): return a if (a<b) else b
+def max(x, y, z): return M(x, M(y, z))
+
+# pixel determine. return RGB(Red, Green, Blue), D(Dark), and 0(None)
+def pxdet(pixel):
+    global mrk
+    hue, sat, val = pixel
+    if sat>50 and val>50:
+        if 50<hue and hue<70:   return mrk['G']
+        elif 110<hue and hue<130: return mrk['B']
+        elif 170<hue or  hue<10:   return mrk['R']
+    elif sat>50 and val<50:
+        return mrk['blk']
+    return mrk['blk']#mrk['nan']
+
+#BFS
+def contourDFS(w, h):
+    global pxmap, imghsv, H, W
+    pxmap[w][h] = cur = pxdet(imghsv[w][h])
+
+    if cur == mrk['blk']: return
+
+    if h>0 and pxmap[w][h-1]==-1: contourDFS(w, h-1)
+    if w>0 and pxmap[w-1][h]==-1: contourDFS(w-1, h)
+    if h<H and pxmap[w][h+1]==-1: contourDFS(w, h+1)
+    if w<W and pxmap[w+1][h]==-1: contourDFS(w+1, h)
+
+    return
+
+def GMC(img):
+    global scailing
+    global pxmap, imghsv, H, W
+    H, W = img.size
+    img = img.resize((H//scailing, W//scailing))
+    H, W = img.size
+
+    res = [0]*5
+    pxmap=np.full((W, H), -1)
+
+    H, W = img.size
+    H = H-1; W = W-1
+    imgarr = np.array(img)
+    imghsv = cv2.cvtColor(imgarr, cv2.COLOR_RGB2HSV)
+    
+    contourDFS(0, 0)
+
+    H = H+1; W = W+1
+    for w in range(W):
+        for h in range(H):
+            cur = pxmap[w][h]
+            if cur == -1: 
+                cur = pxdet(imghsv[w][h])
+                res[cur] = res[cur]+1
+
+    R = res[mrk['R']]; G=res[mrk['G']]; B=res[mrk['B']]
+    return ("R" if (R>G) else "G") if (R>B) else ("G" if (G>B) else "B")
+
+start = time.time()
+scailing = 10
+
+image = Image.open("./image.png")
+print(GMC(image))
+
+end = time.time()
+print(f"{end - start:.5f} sec to calculate")
+# print(time.time()-start)
+# print(44*(time.time()-start))
