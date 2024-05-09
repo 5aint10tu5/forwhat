@@ -113,7 +113,7 @@ def GMC(img):
             elif (50 < hue(i, j,imghsv) and hue(i, j,imghsv) < 70) and sa(i, j,imghsv) > 50 and v(i, j,imghsv) > 50:
                 CN[s] = 1
                 s +=1
-            elif (110 < hue(i, j,imghsv) or hue(i, j,imghsv) < 130) and sa(i, j,imghsv) > 50 and v(i, j,imghsv) > 50:
+            elif (110 < hue(i, j,imghsv) and hue(i, j,imghsv) < 130) and sa(i, j,imghsv) > 50 and v(i, j,imghsv) > 50:
                 CN[s] = 2
                 s +=1       
 
