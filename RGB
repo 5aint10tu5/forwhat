@@ -42,13 +42,13 @@ def GMC(img):
     imgpxhsv = cv2.cvtColor(imgpx_, cv2.COLOR_RGB2HSV)
 
     x1 = 0; y1 = 0; x2 = 0; y2 = 0; x3 = 0; y3 = 0
-    x1_ = 0; y1_ = 0; x3_ = 0; y3_ = 0
+    x1_ = 0; y1_ = 0; x2_ = 0; y2_= 0; x3_ = 0; y3_ = 0
 
     breaker1 = False
     for j in range(W//3):
         for i in range(W//3):
             y = imgpxhsv[j, i, 2]
-            if y < 30:
+            if y < 50:
                 x1, y1 = (i, j)
                 breaker1 = True
                 break
@@ -59,7 +59,7 @@ def GMC(img):
     for i in range(W//3):
         for j in range(W//3):
             y = imgpxhsv[j, i, 2]
-            if y < 30:
+            if y < 50:
                 x2, y2 = (i, j)
                 breaker2 = True
                 break
@@ -70,7 +70,7 @@ def GMC(img):
     for j in range(W//3):
         for i in range(W//3):
             y = imgpxhsv[W//3-1-j, W//3-1-i, 2]
-            if y < 30:
+            if y < 50:
                 x3, y3 = (W//3-1-i, W//3-1-j)
                 breaker3 = True
                 break
@@ -78,7 +78,7 @@ def GMC(img):
             break
 
     if x1 == x2 and y1 == y2:
-        x1_= x1; y1_ = y1; x3_ = x3; y3_ = y3
+        x1_= x1; y1_ = y1; x2_ = x2; y2_ = y2; x3_ = x3; y3_ = y3
         img_r = imgf
     else:
         D1 = (y2-y1)/(x1-x2+10**(-4)); D2 = (y2-y3)/(x3-x2+10**(-4))
@@ -88,40 +88,50 @@ def GMC(img):
         img_r = imgf.rotate(As)
 
         x1_=(x1-W/6)*np.cos(A)+(y1-W/6)*np.sin(A)+W/6; y1_=-(x1-W/6)*np.sin(A)+(y1-W/6)*np.cos(A)+W/6
+        x2_=(x2-W/6)*np.cos(A)+(y2-W/6)*np.sin(A)+W/6; y2_=-(x2-W/6)*np.sin(A)+(y2-W/6)*np.cos(A)+W/6
         x3_=(x3-W/6)*np.cos(A)+(y3-W/6)*np.sin(A)+W/6; y3_=-(x3-W/6)*np.sin(A)+(y3-W/6)*np.cos(A)+W/6
+        
+        if x1_+6 < x3_-6 and y1_+4 < y3_-4:
 
-    img_rc = img_r.crop((x1_+6, y1_+4, x3_-6, y3_-4))
-    '''
-    plt.imshow(img_rc)
-    plt.show()
-    '''
-    imgcv = np.array(img_rc)
-    imghsv = cv2.cvtColor(imgcv, cv2.COLOR_RGB2HSV)
+            img_rc = img_r.crop((x1_+6, y1_+4, x3_-6, y3_-4))
+            imgcv = np.array(img_rc)
+            imghsv = cv2.cvtColor(imgcv, cv2.COLOR_RGB2HSV)
 
-    cv2.imshow("asdf", imgcv)
-    cv2.waitKey()
-    
-    H_r, W_r, C_r = imghsv.shape
-    s=0
-    P = H_r * W_r
-    CN = np.zeros(P)
-    for i in range(W_r):
-        for j in range(H_r):
-            if (170 < hue(i, j,imghsv) or hue(i, j,imghsv) < 10) and sa(i, j,imghsv) > 50 and v(i, j,imghsv) > 50:
-                CN[s] = 0
-                s +=1
-            elif (50 < hue(i, j,imghsv) and hue(i, j,imghsv) < 70) and sa(i, j,imghsv) > 50 and v(i, j,imghsv) > 50:
-                CN[s] = 1
-                s +=1
-            elif (110 < hue(i, j,imghsv) and hue(i, j,imghsv) < 130) and sa(i, j,imghsv) > 50 and v(i, j,imghsv) > 50:
-                CN[s] = 2
-                s +=1       
+            H_r, W_r, C_r = imghsv.shape
+            s=0
+            P = H_r * W_r
+            CN = np.zeros(P)
+            for i in range(W_r):
+                for j in range(H_r):
+                    if (170 < hue(i, j,imghsv) or hue(i, j,imghsv) < 10) and sa(i, j,imghsv) > 50 and v(i, j,imghsv) > 50:
+                        CN[s] = 0
+                        s +=1
+                    elif (50 < hue(i, j,imghsv) and hue(i, j,imghsv) < 70) and sa(i, j,imghsv) > 50 and v(i, j,imghsv) > 50:
+                        CN[s] = 1
+                        s +=1
+                    elif (110 < hue(i, j,imghsv) and hue(i, j,imghsv) < 130) and sa(i, j,imghsv) > 50 and v(i, j,imghsv) > 50:
+                        CN[s] = 2
+                        s +=1       
+        else:
+            imgcv = np.array(img_r)
+            imghsv = cv2.cvtCOLOR(imgcv, cv2.COLOR_RGB2HSV)
+            CN = np.zeros(6)
+            X = np.array([x1_+7, x2_+7, x3_-7, x1_+9, x2_+9, x3_-9])
+            Y = np.array([y1_+5, y2_-5, y3_-5, y1_+7, y2_-7, y3_-7])
+            for i in range(6):
+                if (170 < hue(X[i], Y[i],imghsv) or hue(X[i], Y[i],imghsv) < 10) and sa(X[i], Y[i],imghsv) > 50 and v(X[i], Y[i],imghsv) > 50:
+                        CN[s] = 0
+                        s +=1
+                elif (50 < hue(X[i], Y[i],imghsv) and hue(X[i], Y[i],imghsv) < 70) and sa(X[i], Y[i],imghsv) > 50 and v(X[i], Y[i],imghsv) > 50:
+                        CN[s] = 1
+                        s +=1
+                elif (110 < hue(X[i], Y[i],imghsv) and hue(X[i], Y[i],imghsv) < 130) and sa(X[i], Y[i],imghsv) > 50 and v(X[i], Y[i],imghsv) > 50:
+                        CN[s] = 2
+                        s +=1
 
     COUNT_ = Counter(CN)
     MC = COUNT_.most_common(n=1)
     MCV, FR = MC[0]
-
-    print(CN)
 
     if MCV == 0:
         COL = "R"
@@ -133,5 +143,6 @@ def GMC(img):
 
 image = Image.open("C:/Users/cashi/Downloads/ExQ/ExQ2.png")
 print(GMC(image))
-# print(time.time()-start)
-# print(44*(time.time()-start))
+print(time.time()-start)
+print(44*(time.time()-start))
+
