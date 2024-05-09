@@ -76,10 +76,36 @@ def GMC(img):
                 break
         if breaker3 == True:
             break
-
+    '''
+    cv2.imshow("asdf", imgpxhsv)
+    cv2.waitKey()
+    print(x1, y1, x2, y2, x3, y3)
+    '''
     if x1 == x2 and y1 == y2:
         x1_= x1; y1_ = y1; x2_ = x2; y2_ = y2; x3_ = x3; y3_ = y3
         img_r = imgf
+        img_rc = img_r.crop((x1_+6, y1_+4, x3_-6, y3_-4))
+        imgcv = np.array(img_rc)
+        imghsv = cv2.cvtColor(imgcv, cv2.COLOR_RGB2HSV)
+        '''
+        cv2.imshow("adsf", imghsv)
+        cv2.waitKey()
+        '''
+        H_r, W_r, C_r = imghsv.shape
+        s=0
+        P = H_r * W_r
+        CN = np.zeros(P)
+        for i in range(W_r):
+            for j in range(H_r):
+                if (170 < hue(i, j,imghsv) or hue(i, j,imghsv) < 10) and sa(i, j,imghsv) > 50 and v(i, j,imghsv) > 50:
+                    CN[s] = 0
+                    s +=1
+                elif (50 < hue(i, j,imghsv) and hue(i, j,imghsv) < 70) and sa(i, j,imghsv) > 50 and v(i, j,imghsv) > 50:
+                    CN[s] = 1
+                    s +=1
+                elif (110 < hue(i, j,imghsv) and hue(i, j,imghsv) < 130) and sa(i, j,imghsv) > 50 and v(i, j,imghsv) > 50:
+                    CN[s] = 2
+                    s +=1     
     else:
         D1 = (y2-y1)/(x1-x2+10**(-4)); D2 = (y2-y3)/(x3-x2+10**(-4))
         R = min(D1, D2)
@@ -96,7 +122,10 @@ def GMC(img):
             img_rc = img_r.crop((x1_+6, y1_+4, x3_-6, y3_-4))
             imgcv = np.array(img_rc)
             imghsv = cv2.cvtColor(imgcv, cv2.COLOR_RGB2HSV)
-
+            '''
+            cv2.imshow("adsf", imghsv)
+            cv2.waitKey()
+            '''
             H_r, W_r, C_r = imghsv.shape
             s=0
             P = H_r * W_r
@@ -115,6 +144,10 @@ def GMC(img):
         else:
             imgcv = np.array(img_r)
             imghsv = cv2.cvtCOLOR(imgcv, cv2.COLOR_RGB2HSV)
+            '''
+            cv2.imshow("adsf", imghsv)
+            cv2.waitKey()
+            '''
             CN = np.zeros(6)
             X = np.array([x1_+7, x2_+7, x3_-7, x1_+9, x2_+9, x3_-9])
             Y = np.array([y1_+5, y2_-5, y3_-5, y1_+7, y2_-7, y3_-7])
@@ -141,8 +174,7 @@ def GMC(img):
         COL = "B"
     return COL
 
-image = Image.open("C:/Users/cashi/Downloads/ExQ/ExQ2.png")
+image = Image.open("C:/Users/cashi/Downloads/ExQ/ExQ1.png")
 print(GMC(image))
 print(time.time()-start)
 print(44*(time.time()-start))
-
