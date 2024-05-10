@@ -39,12 +39,13 @@ def contourDFS(w, h):
 
     return
 
-
 def color_detector(filename):
+    fl = cv2.imread(filename)
     global scailing
     global pxmap, imghsv, H, W
-    H, W = fl.size
-    img = fl.resize((H//scailing, W//scailing))
+    H, W, _ = fl.shape
+    img = Image.fromarray(cv2.cvtColor(fl, cv2.COLOR_BGR2RGB))  # OpenCV 이미지를 PIL 이미지로 변환
+    img = img.resize((H // scailing, W // scailing))
     H, W = img.size
 
     res = [0]*5
@@ -56,7 +57,6 @@ def color_detector(filename):
     imghsv = cv2.cvtColor(imgarr, cv2.COLOR_RGB2HSV)
 
     contourDFS(0, 0)
-
 
     H = H+1; W = W+1
     for w in range(W):
@@ -74,6 +74,5 @@ scailing = 10
 if __name__ == '__main__':
     result=[]
     for filename in sorted(glob('public_imgs/*.PNG')):
-        fl = Image.open(filename)
         result.append(color_detector(filename))
     print(result)
