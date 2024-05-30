@@ -1,0 +1,39 @@
+if x1!=x2 and x3!=x4 and y1!=y2 and y3!=y4
+    m1=(y1-y2)/(x2-x1);m2=(y3-y4)/(x4-x3)
+    if m1=m2
+        False
+    else
+        x=(m1*x1-m2*x3+y1-y3);y=m1*(m2*x1-m2*x3+y1-y3)/(m1-m2)+H-y1
+        if 0<x<W and 0<y<H
+            X=(x, H-y)
+        else
+            False
+elif x1!=x2 and x3!=x4 and y1=y2 and y3!=y4
+    if 0<x3+(y4-y3)*(H-y3-y1)/(x4-x3)<W and 0<y1<H
+        X=(x3+(x4-x3)*(H-y3-y1)/(y4-y3), H-y1)
+    else
+        False
+elif x1!=x2 and x3!=x4 and y1!=y2 and y3=y4
+    if 0<x1+(x2-x1)*(H-y1-y3)/(y2-y1)<W and 0<y3<H
+        X=(x1+(x2-x1)*(H-y1-y3)/(y2-y1), H-y3)
+elif x1=x2 and x3!=x4 and y1!=y2 and y3!=y4
+    if 0<x1<W and 0<(y3-y4)*(x1-x3)/(x4-x3)+H-y3<H
+        X=(x1, y3+(y4-y3)*(x1-x3)/(x4-x3))
+    else
+        False
+elif x1=x2 and x3!=x4 and y1!=y2 and y3=y4
+    if 0<x1<W and 0<y3<H
+        X=(x1, H-y3)
+    else
+        False
+elif x1!=x2 and x3=x4 and y1!=y2 and y3!=y4
+    if 0<x3<W and 0<(y1-y2)*(x3-x1)/(x2-x1)+H-y1<H
+        X=(x1, y1+(y2-y1)*(x3-x1)/(x2-x1))
+    else
+        False
+elif x1!=x2 and x3=x4 and y1=y2 and y3!=y4
+    if 0<x3<W and 0<y1<H
+        X=(x3, H-y1)
+    else
+        False
+
